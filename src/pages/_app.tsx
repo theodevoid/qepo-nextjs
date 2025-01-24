@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 import { ThemeProvider } from "~/components/theme-provider";
+import { Toaster } from "~/components/ui/sonner";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
@@ -16,6 +17,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     >
       <div className={GeistSans.className}>
         <Component {...pageProps} />
+        <Toaster />
       </div>
     </ThemeProvider>
   );
