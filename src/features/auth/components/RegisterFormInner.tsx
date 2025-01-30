@@ -17,6 +17,8 @@ import { useState } from "react";
 type RegisterFormInnerProps = {
   onRegisterSubmit: (values: RegisterFormSchema) => void;
   isLoading?: boolean;
+  buttonText?: string;
+  showPassword?: boolean;
 };
 
 export const RegisterFormInner = (props: RegisterFormInnerProps) => {
@@ -58,16 +60,18 @@ export const RegisterFormInner = (props: RegisterFormInnerProps) => {
         )}
       />
 
-      <Label className="mt-4 flex items-center gap-2">
-        <Checkbox
-          checked={showPassword}
-          onCheckedChange={(checked) => setShowPassword(!!checked)}
-        />
-        Show Password
-      </Label>
+      {props.showPassword && (
+        <Label className="mt-4 flex items-center gap-2">
+          <Checkbox
+            checked={showPassword}
+            onCheckedChange={(checked) => setShowPassword(!!checked)}
+          />
+          Show Password
+        </Label>
+      )}
 
       <Button disabled={props.isLoading} size="lg" className="mt-4 w-full">
-        Buat Akun
+        {props.buttonText ?? "Buat Akun"}
       </Button>
     </form>
   );
