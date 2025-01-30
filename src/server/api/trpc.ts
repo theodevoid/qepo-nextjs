@@ -6,10 +6,12 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { User } from "@supabase/supabase-js";
+import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { createSSRClient } from "~/lib/supabase/server";
 
 import { db } from "~/server/db";
 
@@ -21,7 +23,9 @@ import { db } from "~/server/db";
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 
-type CreateContextOptions = Record<string, never>;
+type CreateContextOptions = {
+  user: User | null;
+};
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -36,6 +40,7 @@ type CreateContextOptions = Record<string, never>;
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   return {
     db,
+    user: _opts.user,
   };
 };
 
@@ -45,8 +50,18 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (_opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({});
+export const createTRPCContext = async (_opts: CreateNextContextOptions) => {
+  // Dapetin user yang lagi login
+  const supabaseServerClient = createSSRClient({
+    req: _opts.req,
+    res: _opts.res,
+  });
+
+  const { data } = await supabaseServerClient.auth.getUser();
+
+  return createInnerTRPCContext({
+    user: data.user,
+  });
 };
 
 /**
@@ -115,6 +130,13 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   return result;
 });
 
+const authMiddleware = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.user)
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "user unauthorized" });
+
+  return await next();
+});
+
 /**
  * Public (unauthenticated) procedure
  *
@@ -123,3 +145,5 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+export const privateProcedure = t.procedure.use(authMiddleware);
