@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { supabaseAdminClient } from "~/lib/supabase/client";
+import { supabaseAdminClient } from "~/lib/supabase/server";
 import { passwordSchema } from "~/schemas/auth";
 import { generateFromEmail } from "unique-username-generator";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
