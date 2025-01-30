@@ -16,6 +16,7 @@ import { RegisterFormInner } from "../components/RegisterFormInner";
 import { type RegisterFormSchema, registerFormSchema } from "../forms/register";
 import { api } from "~/utils/api";
 import { toast } from "sonner";
+import { GuestRoute } from "~/components/layout/GuestRoute";
 
 const RegisterPage = () => {
   const form = useForm<RegisterFormSchema>({
@@ -39,52 +40,54 @@ const RegisterPage = () => {
   };
 
   return (
-    <PageContainer>
-      <SectionContainer
-        padded
-        className="flex min-h-[calc(100vh-144px)] w-full flex-col justify-center"
-      >
-        <Card className="w-full max-w-[480px] self-center">
-          <CardHeader className="flex flex-col items-center justify-center">
-            <h1 className="text-3xl font-bold text-primary">Buat Akun</h1>
-            <p className="text-muted-foreground">
-              Qepoin kreator favorite kamu
-            </p>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <RegisterFormInner
-                isLoading={registerUserIsPending}
-                onRegisterSubmit={handleRegisterSubmit}
-                showPassword
-              />
-            </Form>
-          </CardContent>
-
-          <CardFooter className="flex flex-col gap-4">
-            <div className="flex w-full items-center justify-between gap-x-4">
-              <div className="h-[2px] w-full border-t-2" />
-              <p className="flex-1 text-nowrap text-sm text-muted-foreground">
-                Atau lanjut dengan
+    <GuestRoute>
+      <PageContainer>
+        <SectionContainer
+          padded
+          className="flex min-h-[calc(100vh-144px)] w-full flex-col justify-center"
+        >
+          <Card className="w-full max-w-[480px] self-center">
+            <CardHeader className="flex flex-col items-center justify-center">
+              <h1 className="text-3xl font-bold text-primary">Buat Akun</h1>
+              <p className="text-muted-foreground">
+                Qepoin kreator favorite kamu
               </p>
-              <div className="h-[2px] w-full border-t-2" />
-            </div>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <RegisterFormInner
+                  isLoading={registerUserIsPending}
+                  onRegisterSubmit={handleRegisterSubmit}
+                  showPassword
+                />
+              </Form>
+            </CardContent>
 
-            <Button variant="secondary" className="w-full" size="lg">
-              <FcGoogle />
-              Buat Akun dengan Google
-            </Button>
+            <CardFooter className="flex flex-col gap-4">
+              <div className="flex w-full items-center justify-between gap-x-4">
+                <div className="h-[2px] w-full border-t-2" />
+                <p className="flex-1 text-nowrap text-sm text-muted-foreground">
+                  Atau lanjut dengan
+                </p>
+                <div className="h-[2px] w-full border-t-2" />
+              </div>
 
-            <p>
-              Sudah punya akun?{" "}
-              <Link href="/login" className="font-bold text-purple-600">
-                P, Login
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
-      </SectionContainer>
-    </PageContainer>
+              <Button variant="secondary" className="w-full" size="lg">
+                <FcGoogle />
+                Buat Akun dengan Google
+              </Button>
+
+              <p>
+                Sudah punya akun?{" "}
+                <Link href="/login" className="font-bold text-purple-600">
+                  P, Login
+                </Link>
+              </p>
+            </CardFooter>
+          </Card>
+        </SectionContainer>
+      </PageContainer>
+    </GuestRoute>
   );
 };
 
