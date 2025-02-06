@@ -1,6 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TRPCClientError } from "@trpc/client";
-import { useEffect, useRef } from "react";
+import {
+  type ChangeEventHandler,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { AuthRoute } from "~/components/layout/AuthRoute";
@@ -18,6 +24,12 @@ import {
 } from "../forms/edit-profile";
 
 const ProfilePage = () => {
+  const [selectedImage, setSelectedImage] = useState<File | undefined | null>(
+    null,
+  );
+
+  const apiUtils = api.useUtils();
+
   const form = useForm<EditProfileFormSchema>({
     resolver: zodResolver(editProfileFormSchema),
   });
@@ -39,6 +51,17 @@ const ProfilePage = () => {
 
       toast.error("Gagal update profile");
     },
+  });
+  const updateProfilePicture = api.profile.updateProfilePicture.useMutation({
+    onSuccess: async () => {
+      toast.success("Berhasil ganti foto profil");
+      setSelectedImage(null);
+      await apiUtils.profile.getProfile.invalidate();
+    },
+    onError: async () => {
+      // TODO: Handle image upload errors
+      toast.error("Gagal ganti foto profil")
+    }
   });
 
   const inputFileRef = useRef<HTMLInputElement>(null);
@@ -66,15 +89,43 @@ const ProfilePage = () => {
     inputFileRef.current?.click();
   };
 
-  // const editProfileFormHasChanges =
-  //   getProfileData?.username !== form.watch("username") ||
-  //   getProfileData.bio !== form.watch("bio");
+  const handleRemoveSelectedImage = () => {
+    setSelectedImage(null);
+  };
+
+  const onPickProfilePicture: ChangeEventHandler<HTMLInputElement> = (e) => {
+    if (e.target.files) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
+
+  const handleUpdateProfilePicture = async () => {
+    if (selectedImage) {
+      const reader = new FileReader();
+
+      reader.onloadend = function () {
+        const result = reader.result as string;
+        const imageBase64 = result.substring(result.indexOf(",") + 1);
+
+        updateProfilePicture.mutate(imageBase64);
+      };
+
+      reader.readAsDataURL(selectedImage);
+    }
+  };
+
+  const selectedProfilePicturePreview = useMemo(() => {
+    if (selectedImage) {
+      return URL.createObjectURL(selectedImage);
+    }
+  }, [selectedImage]);
 
   useEffect(() => {
     if (getProfileData) {
       form.setValue("username", getProfileData.username ?? "");
       form.setValue("bio", getProfileData.bio ?? "");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getProfileData]);
 
   return (
@@ -88,12 +139,43 @@ const ProfilePage = () => {
               <div className="flex flex-col gap-2">
                 <Avatar className="size-24">
                   <AvatarFallback>VF</AvatarFallback>
-                  <AvatarImage />
+                  <AvatarImage
+                    src={
+                      selectedProfilePicturePreview ??
+                      getProfileData?.profilePictureUrl ??
+                      ""
+                    }
+                  />
                 </Avatar>
-                <Button onClick={handleOpenFileExplorer} size="sm">
+
+                <Button
+                  variant="secondary"
+                  onClick={handleOpenFileExplorer}
+                  size="sm"
+                >
                   Ganti Foto
                 </Button>
-                <input className="hidden" type="file" ref={inputFileRef} />
+                {!!selectedImage && (
+                  <>
+                    <Button
+                      onClick={handleRemoveSelectedImage}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Hapus
+                    </Button>
+                    <Button onClick={handleUpdateProfilePicture} size="sm">
+                      Simpan
+                    </Button>
+                  </>
+                )}
+                <input
+                  accept="image/*"
+                  onChange={onPickProfilePicture}
+                  className="hidden"
+                  type="file"
+                  ref={inputFileRef}
+                />
               </div>
 
               <div className="grid flex-1 grid-cols-2 gap-y-4">
