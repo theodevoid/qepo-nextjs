@@ -17,7 +17,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     >
       <div className={GeistSans.className}>
         <Component {...pageProps} />
-        <Toaster />
+        <Toaster position="top-center" />
       </div>
     </ThemeProvider>
   );
